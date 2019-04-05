@@ -87,9 +87,6 @@ void fft(vi &s,int c)
 			s[i]=(ll)s[i]*inv%mod;
 	}
 }
-<<<<<<< HEAD
-void dfs2();
-=======
 vi mul(vi v1,vi v2)
 {
 	int siz=v1.size()+v2.size()-1;
@@ -171,7 +168,6 @@ void solve()
 	}
 	printf("%d",ans);
 }
->>>>>>> 25352ab79d09b723c03ffdf569fbf123e6b85b48
 int main()
 {
 #ifndef ONLINE_JUDGE
