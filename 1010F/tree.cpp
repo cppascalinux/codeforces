@@ -81,7 +81,7 @@ void fft(vector<int> &s,int c)
 			s[i]=(ll)s[i]*inv%mod;
 	}
 }
-
+void dfs2();
 int main()
 {
 #ifndef ONLINE_JUDGE
