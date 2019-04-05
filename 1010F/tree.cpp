@@ -4,6 +4,10 @@
 #include<cstring>
 #include<algorithm>
 #include<vector>
+#define vi vector<int>
+#define pvv pair<vi,vi >
+#define fi first
+#define se second
 #define ll long long
 #define mod 998244353
 using namespace std;
@@ -13,6 +17,7 @@ int hd[100009],eg[200009],nxt[200009];
 int sz[100009],son[100009];
 int ch[100009][2];
 int rt[2][270009],mp[270009];
+vector<vi > v[31];
 void ins(int a,int b)
 {
 	eg[++tot]=b;
@@ -58,8 +63,9 @@ void init(int l)
 	for(int i=1;i<len;i++)
 		mp[i]=(mp[i>>1]>>1)|((i&1)<<(bit-1));
 }
-void fft(vector<int> &s,int c)
+void fft(vi &s,int c)
 {
+	s.resize(len);
 	for(int i=0;i<len;i++)
 		if(s[i]<s[mp[i]])
 			swap(s[i],s[mp[i]]);
@@ -81,7 +87,87 @@ void fft(vector<int> &s,int c)
 			s[i]=(ll)s[i]*inv%mod;
 	}
 }
-
+vi mul(vi v1,vi v2)
+{
+	int siz=v1.size()+v2.size()-1;
+	init(siz);
+	fft(v1,0);
+	fft(v2,0);
+	for(int i=0;i<len;i++)
+		v1[i]=(ll)v1[i]*v2[i]%mod;
+	fft(v1,1);
+	return v1;
+}
+pvv cal(int l,int r,vector<vi > &vs)
+{
+	if(l==r)
+	{
+		vi vp,vq;
+		vp=vq=vs[l];
+		vp[0]=(vp[0]+1)%mod;
+		return pvv(vp,vq);
+	}
+	int mid=(l+r)>>1;
+	pvv ls=cal(l,mid,vs),rs=cal(mid+1,r,vs);
+	vi nq=mul(ls.se,rs.se);
+	vi np=ls.fi;
+	np[0]=(np[0]+mod-1)%mod;
+	np=mul(np,rs.se);
+	np.resize(max(np.size(),rs.fi.size()));
+	for(int i=0;i<(int)rs.fi.size();i++)
+		np[i]=(np[i]+rs.fi[i])%mod;
+	return pvv(np,nq);
+}
+template<class T>
+void clr(vector<T> &x)
+{
+	vector<T> tmp;
+	tmp.swap(x);
+}
+void dfs2(int x,int id)
+{
+	vi vp;
+	if(ch[x][0])
+		dfs2(ch[x][0],id);
+	if(ch[x][1])
+	{
+		dfs2(ch[x][1],id+1);
+		vp=cal(0,v[id+1].size()-1,v[id+1]).fi;
+		v[id+1].~vector();
+		// clr(v[id+1]);
+		// delete &v[id+1];
+		vp.resize(sz[ch[x][1]]+2);
+		for(int i=sz[ch[x][1]]+1;i>=1;i--)
+			vp[i]=vp[i-1];
+		vp[0]=0;
+	}
+	else
+	{
+		vp.push_back(0);
+		vp.push_back(1);
+	}
+	v[id].push_back(vp);
+}
+void solve()
+{
+	for(int i=0;i<v[1].size();i++)
+	{
+		for(int j=0;j<v[1][i].size();j++)
+			printf("i:%d j:%d v:%d\n",i,j,v[1][i][j]);
+	}
+	vi vp=cal(0,v[1].size()-1,v[1]).fi;
+	for(int i=0;i<vp.size();i++)
+		printf("i:%d vp:%d\n",i,vp[i]);
+	int cb=1,ans=0;
+	for(int i=1;i<=n;i++)
+	{
+		ans=(ans+(ll)cb*vp[i])%mod;
+		int ad=(i+val)%mod,inv=i;
+		cb=(ll)cb*ad%mod*qpow(inv,mod-2)%mod;
+		// printf("cb:%d\n",cb);
+	}
+	printf("%d",ans);
+}
 int main()
 {
 #ifndef ONLINE_JUDGE
@@ -96,5 +182,8 @@ int main()
 		ins(b,a);
 	}
 	dfs1(1,0);
+	dfs2(1,1);
+	solve();
+	// printf("1");
 	return 0;
 }
