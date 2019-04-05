@@ -54,6 +54,7 @@ void init(int l)
 	while(1<<bit<l)
 		bit++;
 	len=1<<bit;
+	// printf("l:%d len:%d\n",l,len);
 	rt[0][0]=rt[1][0]=1;
 	rt[0][1]=qpow(3,(mod-1)/len);
 	for(int i=2;i<len;i++)
@@ -65,9 +66,9 @@ void init(int l)
 }
 void fft(vi &s,int c)
 {
-	s.resize(len);
+	// s.resize(len);
 	for(int i=0;i<len;i++)
-		if(s[i]<s[mp[i]])
+		if(i<mp[i])
 			swap(s[i],s[mp[i]]);
 	for(int l=2;l<=len;l<<=1)
 	{
@@ -91,20 +92,30 @@ vi mul(vi v1,vi v2)
 {
 	int siz=v1.size()+v2.size()-1;
 	init(siz);
+	v1.resize(len);
+	v2.resize(len);
 	fft(v1,0);
 	fft(v2,0);
 	for(int i=0;i<len;i++)
 		v1[i]=(ll)v1[i]*v2[i]%mod;
 	fft(v1,1);
+	v1.resize(siz);
+	// printf("fft: siz:%d v1: ",siz);
+	// for(int i=0;i<(int)v1.size();i++)
+	// 	printf("%d ",v1[i]);
+	// printf("\n");
 	return v1;
 }
 pvv cal(int l,int r,vector<vi > &vs)
 {
 	if(l==r)
 	{
+		// printf("l:%d r:%d-------------------------\nnp: ",l,r);
 		vi vp,vq;
-		vp=vq=vs[l];
+		vq=vs[l];
+		vp=vs[l];
 		vp[0]=(vp[0]+1)%mod;
+		// printf("l:%d vpsz:%d vqsz:%d\n",l,vp.size(),vq.size());
 		return pvv(vp,vq);
 	}
 	int mid=(l+r)>>1;
@@ -116,6 +127,19 @@ pvv cal(int l,int r,vector<vi > &vs)
 	np.resize(max(np.size(),rs.fi.size()));
 	for(int i=0;i<(int)rs.fi.size();i++)
 		np[i]=(np[i]+rs.fi[i])%mod;
+	// printf("l:%d r:%d-------------------------\nnp: ",l,r);
+	// for(int i=0;i<(int)np.size();i++)
+	// 	printf("%d ",np[i]);
+	// printf("\nnq: ");
+	// for(int i=0;i<(int)nq.size();i++)
+	// 	printf("%d ",nq[i]);
+	// printf("\nlq: ");
+	// for(int i=0;i<(int)ls.se.size();i++)
+	// 	printf("%d ",ls.se[i]);
+	// printf("\nrq: ");
+	// for(int i=0;i<(int)rs.se.size();i++)
+	// 	printf("%d ",rs.se[i]);
+	// printf("\n");
 	return pvv(np,nq);
 }
 template<class T>
@@ -133,8 +157,8 @@ void dfs2(int x,int id)
 	{
 		dfs2(ch[x][1],id+1);
 		vp=cal(0,v[id+1].size()-1,v[id+1]).fi;
-		v[id+1].~vector();
-		// clr(v[id+1]);
+		// v[id+1].~vector();
+		clr(v[id+1]);
 		// delete &v[id+1];
 		vp.resize(sz[ch[x][1]]+2);
 		for(int i=sz[ch[x][1]]+1;i>=1;i--)
@@ -150,14 +174,14 @@ void dfs2(int x,int id)
 }
 void solve()
 {
-	for(int i=0;i<v[1].size();i++)
-	{
-		for(int j=0;j<v[1][i].size();j++)
-			printf("i:%d j:%d v:%d\n",i,j,v[1][i][j]);
-	}
+	// for(int i=0;i<v[1].size();i++)
+	// {
+	// 	for(int j=0;j<v[1][i].size();j++)
+	// 		printf("i:%d j:%d v:%d\n",i,j,v[1][i][j]);
+	// }
 	vi vp=cal(0,v[1].size()-1,v[1]).fi;
-	for(int i=0;i<vp.size();i++)
-		printf("i:%d vp:%d\n",i,vp[i]);
+	// for(int i=0;i<vp.size();i++)
+	// 	printf("i:%d vp:%d\n",i,vp[i]);
 	int cb=1,ans=0;
 	for(int i=1;i<=n;i++)
 	{
