@@ -183,6 +183,7 @@ void solve()
 	build(1,1,n*m);
 	// for(int i=1;i<=n*m;i++)
 	// 	printf("l:%d r:%d mn:%d sm:%d\n",l[i],r[i],mn[i],sm[i]);
+	//biubiubiu
 	int rp=n*m;
 	li ans=0;
 	for(int lp=n*m;lp>=1;lp--)
