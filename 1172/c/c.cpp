@@ -1,13 +1,13 @@
 #include<iostream>
 #include<cstdio>
-#include<algorithm>
 #include<cstring>
+#include<algorithm>
 #define li long long
 #define mod 998244353
 using namespace std;
 int n,m;
-int f[59][209][59],g[59][209];
-int w[200009],s[200009];
+int s[200009],w[200009];
+int f[3009][3009];
 int qpow(int a,int b)
 {
 	int ans=1;
@@ -16,49 +16,36 @@ int qpow(int a,int b)
 			ans=(li)ans*a%mod;
 	return ans;
 }
-void dp()
+void solve()
 {
-	int rsm=0;
+	int w0=0,w1=0;
 	for(int i=1;i<=n;i++)
-		rsm+=w[i];
-	for(int i=1;i<=n;i++)
-		f[0][100][i]=w[i];
-	g[0][100]=1;
+		if(s[i])
+			w1+=w[i];
+		else
+			w0+=w[i];
+	f[0][0]=1;
 	for(int i=0;i<=m-1;i++)
-		for(int j=0;j<=200;j++)
+	{
+		for(int j=0;j<=i;j++)
 		{
-			for(int k=1;k<=n;k++)
-			{
-				f[i][j][k]=(li)f[i][j][k]*qpow(g[i][j],mod-2)%mod;
-				if(f[i][j][k]&&g[i][j])
-				{
-					int prob=(li)qpow(j-100+rsm,mod-2)*f[i][j][k]%mod;
-					// printf("prob:%d\n",prob);
-					g[i+1][j+s[k]]=(g[i+1][j+s[k]]+(li)g[i][j]*prob)%mod;
-					// g[i+1][j]=(g[i+1][j]+(li)g[i][j]*(mod+1-prob))%mod;
-					f[i+1][j+s[k]][k]=(f[i+1][j+s[k]][k]+(li)g[i][j]*prob%mod*(f[i][j][k]+mod+s[k]))%mod;
-					for(int l=1;l<=n;l++)
-						if(l!=k)
-							f[i+1][j+s[k]][l]=(f[i+1][j+s[k]][l]+(li)g[i][j]*prob%mod*f[i][j][l])%mod;
-				}
-			}
+			int prob=(li)(w1+j)*qpow(((li)mod+w0-(i-j)+w1+j)%mod,mod-2)%mod;
+			f[i+1][j+1]=(f[i+1][j+1]+(li)f[i][j]*prob)%mod;
+			f[i+1][j]=(f[i+1][j]+(li)f[i][j]*(mod+1-prob))%mod;
 		}
-	// for(int j=0;j<=200;j++)
-	// 	for(int k=1;k<=n;k++)
-	// 		f[m][j][k]=(li)f[m][j][k]*qpow
+	}
+	int ans0=0,ans1=0;
 	for(int i=0;i<=m;i++)
-		for(int j=98;j<=102;j++)
-		{
-			printf("i:%d j:%d g:%d\n",i,j,g[i][j]);
-			for(int k=1;k<=n;k++)
-				printf("k:%d f:%d\n",k,f[i][j][k]);
-		}
+	{
+		ans0=(ans0+(li)f[m][i]*((li)mod+w0-(m-i)))%mod;
+		ans1=(ans1+(li)f[m][i]*(w1+i))%mod;
+	}
 	for(int i=1;i<=n;i++)
 	{
-		int ans=0;
-		for(int j=0;j<=200;j++)
-			ans=(ans+f[m][j][i])%mod;
-		printf("%d\n",ans);
+		if(s[i])
+			printf("%lld\n",(li)ans1*qpow(w1,mod-2)%mod*w[i]%mod);
+		else
+			printf("%lld\n",(li)ans0*qpow(w0,mod-2)%mod*w[i]%mod);
 	}
 }
 int main()
@@ -69,13 +56,9 @@ int main()
 #endif
 	scanf("%d%d",&n,&m);
 	for(int i=1;i<=n;i++)
-	{
 		scanf("%d",s+i);
-		if(s[i]==0)
-			s[i]=-1;
-	}
 	for(int i=1;i<=n;i++)
 		scanf("%d",w+i);
-	dp();
+	solve();
 	return 0;
 }
