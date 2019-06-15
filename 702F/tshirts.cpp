@@ -10,39 +10,32 @@
 #define se second
 #define inf 0x7F7F7F7F
 using namespace std;
-int n,m,cnt,rt;
-pii s[200009],pp[200009];
-int ans[200009];
-int f[200009],ch[200009][2],sz[200009],v[200009],lz[200009];
-bool cmp1(pii a,pii b)
+int n,m,rt;
+pii s[200009];
+int f[200009],ch[200009][2],ccf[200009],sm[200009],sz[200009],lzccf[200009],lzsm[200009];
+int st[200009];
+int tmpid[200009],tmpv1[200009],tmpv2[200009];
+void update(int x)
 {
-	return a.se==b.se?a.fi<b.fi:a.se>b.se;
-}
-int build(int l,int r)
-{
-	if(l>r)
-		return 0;
-	int mid=(l+r)>>1;
-	int x=pp[mid].se;
-	v[x]=pp[mid].fi;
-	ch[x][0]=build(l,mid-1);
-	ch[x][1]=build(mid+1,r);
-	sz[x]=sz[ch[x][0]]+sz[ch[x][1]]+1;
-	return x;
+	if(x)
+		sz[x]=sz[ch[x][0]]+sz[ch[x][1]]+1;
 }
 void down(int x)
 {
-	if(!lz[x])
-		return;
-	int lx=ch[x][0],rx=ch[x][1],t=lz[x];
-	v[lx]-=t,v[rx]-=t;
-	lz[lx]+=t,lz[rx]+=t;
-	ans[lx]+=t,ans[rx]+=t;
-	lz[x]=0;
-}
-void update(int x)
-{
-	sz[x]=sz[ch[x][0]]+sz[ch[x][1]]+1;
+	int lx=ch[x][0],rx=ch[x][1],v1=lzccf[x],v2=lzsm[x];
+	if(lx)
+	{
+		lzccf[lx]+=v1,lzsm[lx]+=v2;
+		if(lx<=m)
+			ccf[lx]+=v1,sm[lx]+=v2;
+	}
+	if(rx)
+	{
+		lzccf[rx]+=v1,lzsm[rx]+=v2;
+		if(rx<=m)
+			ccf[rx]+=v1,sm[rx]+=v2;
+	}
+	lzsm[x]=lzccf[x]=0;
 }
 void rotate(int x)
 {
@@ -58,54 +51,104 @@ void rotate(int x)
 }
 void splay(int x,int fa)
 {
+	int y,z,tp=0;
+	for(y=x;y!=fa;y=f[y])
+		st[++tp]=y;
+	for(;tp>=1;tp--)
+		down(st[tp]);
 	while(f[x]!=fa)
 	{
-		int y=f[x],z=f[y];
-		if(f[y]!=fa)
-			rotate((x==ch[y][1])^(y==ch[z][1])?x:y);
+		y=f[x],z=f[y];
+		if(z!=fa)
+			rotate((x==ch[y][1])!=(y==ch[z][1])?x:y);
 		rotate(x);
 	}
 	if(!fa)
 		rt=x;
 }
-void ins(int x,int fa,int id,int val)
+void ins(int x,int fa,int id,int v1,int v2)
 {
 	if(!x)
 	{
-		x=id;
+		f[id]=fa;
+		ch[id][0]=ch[id][1]=0;
+		sz[id]=1;
+		ccf[id]=v1,sm[id]=v2;
+		lzccf[id]=lzsm[id]=0;
 		if(fa)
-			ch[fa][val>=v[fa]]=x;
-		f[x]=fa;
-		sz[x]=1;
-		lz[x]=0;
-		v[x]=val;
-		ch[x][0]=ch[x][1]=0;
-		splay(x,0);
+			ch[fa][v1>ccf[fa]]=id;
+		splay(id,0);
 		return;
 	}
-	ins(ch[x][val>=v[x]],x,id,val);
+	down(x);
+	ins(ch[x][v1>ccf[x]],x,id,v1,v2);
 }
-int rnk(int x,int val)
+int rnk(int p,int val)
+{
+	if(!p)
+		return 1;
+	down(p);
+	if(val<=ccf[p])
+		return rnk(ch[p][0],val);
+	return rnk(ch[p][1],val)+sz[ch[p][0]]+1;
+}
+int kth(int p,int k)
+{
+	if(k==sz[ch[p][0]]+1)
+		return splay(p,0),p;
+	down(p);
+	if(k<=sz[ch[p][0]])
+		return kth(ch[p][0],k);
+	return kth(ch[p][1],k-sz[ch[p][0]]-1);
+}
+void dfs(int x,int &tp)
 {
 	if(!x)
-		return 1;
-	if(val>=v[x])
-		return sz[ch[x][0]]+1+rnk(ch[x][1],val);
-	return rnk(ch[x][0],val);
+		return;
+	down(x);
+	dfs(ch[x][0],tp);
+	tmpid[++tp]=x;
+	tmpv1[tp]=ccf[x];
+	tmpv2[tp]=sm[x];
+	dfs(ch[x][1],tp);
 }
-int kth(int x,int k)
+bool cmp(pii a,pii b)
 {
-	if(k==sz[ch[x][0]]+1)
-		return splay(x),x;
-	if(k<=sz[ch[x][0]])
-		return kth(ch[x][0],k);
-	return kth(ch[x][1],k-sz[ch[x][0]]-1);
+	return a.se==b.se?a.fi<b.fi:a.se>b.se;
 }
 void solve()
 {
-	sort(s+1,s+n+1,cmp1);
-	sort(pp+1,pp+m+1);
-	rt=build(1,m);
+	sort(s+1,s+n+1,cmp);
+	// for(int i=1;i<=n;i++)
+	// 	printf("i:%d fi:%d se:%d\n",i,s[i].fi,s[i].se);
+	for(int i=1;i<=n;i++)
+	{
+		int v=s[i].fi;
+		int pa=kth(rt,rnk(rt,v)-1),pb=kth(rt,rnk(rt,2*v));
+		// printf("i:%d v:%d pa:%d pb:%d\n",i,v,pa,pb);
+		// printf("1:%d 2:%d 3:%d 4:%d\n",kth(rt,1),kth(rt,2),kth(rt,3),kth(rt,4));
+		// printf("rnk3:%d\n",rnk(rt,3));
+		splay(pa,0),splay(pb,pa);
+		sm[pb]++,lzsm[pb]++;
+		down(pa),down(pb);
+		int tp=0;
+		dfs(ch[pb][0],tp);
+		ch[pb][0]=0;
+		update(pb),update(pa);
+		lzccf[pb]-=v;
+		if(pb<=m)
+			ccf[pb]-=v;
+		for(int i=1;i<=tp;i++)
+			ins(rt,0,tmpid[i],tmpv1[i]-v,tmpv2[i]);
+		// tp=0;
+		// dfs(rt,tp);
+		// for(int i=1;i<=tp;i++)
+		// 	printf("id:%d ccf:%d sm:%d\n",tmpid[i],tmpv1[i],tmpv2[i]);
+	}
+	int tp=0;
+	dfs(rt,tp);
+	for(int i=1;i<=m;i++)
+		printf("%d ",sm[i]);
 }
 int main()
 {
@@ -115,15 +158,15 @@ int main()
 #endif
 	scanf("%d",&n);
 	for(int i=1;i<=n;i++)
-		scanf("%d%d",&s[i].fi,&s[i].se);//price,quality
+		scanf("%d%d",&s[i].fi,&s[i].se);
 	scanf("%d",&m);
 	for(int i=1,a;i<=m;i++)
 	{
 		scanf("%d",&a);
-		ins(rt,0,i,a);
+		ins(rt,0,i,a,0);
 	}
-	ins(rt,0,m+1,-inf);
-	ins(rt,0,m+2,inf);
+	ins(rt,0,m+1,-inf,0);
+	ins(rt,0,m+2,inf,0);
 	solve();
 	return 0;
 }
